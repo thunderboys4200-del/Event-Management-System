@@ -5,10 +5,24 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+function sanitizeEnvString(val?: string): string {
+  if (!val) return '';
+  let cleaned = val.trim();
+  // Strip outer quotes if wrapped in single or double quotes
+  if (
+    (cleaned.startsWith('"') && cleaned.endsWith('"')) ||
+    (cleaned.startsWith("'") && cleaned.endsWith("'"))
+  ) {
+    cleaned = cleaned.slice(1, -1).trim();
+  }
+  return cleaned;
+}
+
 function getOrGenerateJwtSecret(): string {
   // 1. If explicitly set in environment variables, use it
-  if (process.env.JWT_SECRET && process.env.JWT_SECRET.trim().length > 0) {
-    return process.env.JWT_SECRET.trim();
+  const envSecret = sanitizeEnvString(process.env.JWT_SECRET);
+  if (envSecret.length > 0) {
+    return envSecret;
   }
 
   // 2. Otherwise, check or persist an auto-generated cryptographically secure secret
@@ -40,7 +54,7 @@ function getOrGenerateJwtSecret(): string {
 export const config = {
   port: parseInt(process.env.PORT || '3000', 10),
   jwtSecret: getOrGenerateJwtSecret(),
-  mongoUri: process.env.MONGODB_URI || '',
+  mongoUri: sanitizeEnvString(process.env.MONGODB_URI),
   isProduction: process.env.NODE_ENV === 'production',
   uploadsDir: path.join(process.cwd(), 'uploads'),
   dataDir: path.join(process.cwd(), 'data'),
