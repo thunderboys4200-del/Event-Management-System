@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # College Event Portal
 
 A full-stack web application for college event management, student registration, event posters, past event vertical photo memories, and staff administration.
@@ -50,3 +51,6 @@ A full-stack web application for college event management, student registration,
 - **Backend**: Node.js, Express, Multer, JWT, BcryptJS, Mongoose / Local DB adapter
 - **Build Tool**: Vite 6, tsx, esbuild
 http://localhost:3000
+=======
+# Event-Management-System
+>>>>>>> e013a1ab7a328b29ce148e871c4be839f6f2e913
