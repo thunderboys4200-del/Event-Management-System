@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: svcet-event-hub
+    runtime: node
+    region: singapore
+    plan: free
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        sync: false
+      - key: VITE_API_URL
+        sync: false
