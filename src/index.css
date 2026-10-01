@@ -1,0 +1,374 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-display: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+
+  html {
+    font-family: var(--font-sans);
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    color: #0f172a;
+    background:
+      radial-gradient(circle at top left, rgba(224, 231, 255, 0.56), transparent 30rem),
+      #f8fafc;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.025em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@layer components {
+  .app-shell {
+    background:
+      radial-gradient(circle at 92% 16%, rgba(196, 181, 253, 0.2), transparent 24rem),
+      radial-gradient(circle at 8% 46%, rgba(191, 219, 254, 0.18), transparent 22rem);
+  }
+
+  .page-canvas {
+    position: relative;
+  }
+
+  .page-canvas::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.52;
+    background-image: linear-gradient(rgba(148, 163, 184, 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, 0.07) 1px, transparent 1px);
+    background-size: 34px 34px;
+    mask-image: linear-gradient(to bottom, black, transparent 26rem);
+  }
+
+  .focus-ring {
+    outline: none;
+  }
+
+  .focus-ring:focus-visible {
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.32);
+  }
+}
+
+/* Custom modern scrollbar for clean corporate appearance */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Subtle glassmorphic card utilities */
+.card-glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .card-glass {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ═══════════════════════════════════════════════════════
+   3D TILT CARD SYSTEM
+   ═══════════════════════════════════════════════════════ */
+
+/* Container that provides the 3D perspective context */
+.perspective-container {
+  perspective: 800px;
+  perspective-origin: center;
+}
+
+/* Card with 3D transform support — tilt values are set via CSS custom props by JS */
+.card-3d {
+  --rx: 0deg;
+  --ry: 0deg;
+  --glow-x: 50%;
+  --glow-y: 50%;
+  --glow-opacity: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx)) rotateY(var(--ry));
+  transition: transform 0.15s ease-out, box-shadow 0.25s ease-out;
+  will-change: transform;
+}
+
+/* Glowing edge highlight that follows cursor position */
+.card-3d-glow {
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+  opacity: var(--glow-opacity);
+  background: radial-gradient(
+    600px circle at var(--glow-x) var(--glow-y),
+    rgba(99, 102, 241, 0.25),
+    rgba(168, 85, 247, 0.12) 30%,
+    transparent 70%
+  );
+  transition: opacity 0.3s ease-out;
+}
+
+.dark .card-3d-glow {
+  background: radial-gradient(
+    600px circle at var(--glow-x) var(--glow-y),
+    rgba(129, 140, 248, 0.3),
+    rgba(192, 132, 252, 0.15) 30%,
+    transparent 70%
+  );
+}
+
+/* Inner glow border line */
+.card-3d-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid transparent;
+  background: radial-gradient(
+    400px circle at var(--glow-x) var(--glow-y),
+    rgba(99, 102, 241, 0.4),
+    transparent 60%
+  ) border-box;
+  mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+}
+
+/* Shimmer sweep over card poster images */
+.card-3d-shimmer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.06) 45%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.06) 55%,
+    transparent 60%
+  );
+  background-size: 250% 100%;
+  background-position: 200% 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card-3d:hover .card-3d-shimmer {
+  opacity: 1;
+  animation: shimmer-sweep 1.5s ease-in-out;
+}
+
+@keyframes shimmer-sweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Elevated shadow on 3D hover */
+.card-3d-shadow {
+  transition: box-shadow 0.3s ease-out;
+}
+
+.card-3d:hover .card-3d-shadow,
+.card-3d:hover {
+  box-shadow:
+    0 20px 40px -12px rgba(99, 102, 241, 0.15),
+    0 8px 20px -8px rgba(0, 0, 0, 0.1);
+}
+
+.dark .card-3d:hover {
+  box-shadow:
+    0 20px 40px -12px rgba(99, 102, 241, 0.25),
+    0 8px 20px -8px rgba(0, 0, 0, 0.3);
+}
+
+/* ═══════════════════════════════════════════════════════
+   GLASSMORPHIC NAVBAR WITH ANIMATED GRADIENT BORDER
+   ═══════════════════════════════════════════════════════ */
+
+/* Animated gradient border wrapper — the outer element */
+.navbar-glass-border {
+  position: relative;
+  z-index: 40;
+}
+
+.navbar-glass-border::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(99, 102, 241, 0.0) 10%,
+    rgba(99, 102, 241, 0.6) 30%,
+    rgba(168, 85, 247, 0.7) 50%,
+    rgba(236, 72, 153, 0.6) 70%,
+    rgba(99, 102, 241, 0.0) 90%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: gradient-slide 4s ease-in-out infinite;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.navbar-glass-border.scrolled::before {
+  opacity: 1;
+}
+
+@keyframes gradient-slide {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Enhanced glassmorphism surface */
+.navbar-glass-surface {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px) saturate(1.8);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  transition: background 0.3s ease, backdrop-filter 0.3s ease, box-shadow 0.3s ease;
+}
+
+.navbar-glass-surface.scrolled {
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow:
+    0 4px 30px -4px rgba(99, 102, 241, 0.06),
+    0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.dark .navbar-glass-surface {
+  background: rgba(15, 23, 42, 0.72);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.dark .navbar-glass-surface.scrolled {
+  background: rgba(15, 23, 42, 0.88);
+  box-shadow:
+    0 4px 30px -4px rgba(99, 102, 241, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* Nav link hover 3D micro-tilt */
+.nav-link-3d {
+  transition: transform 0.2s ease, color 0.2s ease, background 0.2s ease;
+  transform-style: preserve-3d;
+}
+
+.nav-link-3d:hover {
+  transform: translateY(-1px) rotateX(-2deg);
+}
+
+.nav-link-3d:active {
+  transform: translateY(0px) rotateX(1deg) scale(0.98);
+}
+
+/* Animated active indicator pill */
+.nav-active-pill {
+  position: relative;
+}
+
+.nav-active-pill::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 25%;
+  right: 25%;
+  height: 2.5px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #6366f1, #a855f7);
+  transform: scaleX(0);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.nav-active-pill[data-active="true"]::after {
+  transform: scaleX(1);
+}
+
+/* Logo 3D hover */
+.logo-3d {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-style: preserve-3d;
+}
+
+.logo-3d:hover {
+  transform: rotateY(-8deg) rotateX(4deg) scale(1.03);
+}
+
+/* Mobile menu glass effect */
+.mobile-menu-glass {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+}
+
+.dark .mobile-menu-glass {
+  background: rgba(15, 23, 42, 0.95);
+}
+
+/* ═══════════════════════════════════════════════════════
+   BUTTON 3D PRESS EFFECT
+   ═══════════════════════════════════════════════════════ */
+.btn-3d-press {
+  transform-style: preserve-3d;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-3d-press:hover {
+  transform: translateY(-2px);
+}
+
+.btn-3d-press:active {
+  transform: translateY(1px) scale(0.97);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+}
