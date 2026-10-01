@@ -25,11 +25,14 @@ function sanitizeMongoUri(val?: string): string {
   // Ensure passwords with unencoded special characters like '@', '#', '$', '%', etc. are properly URL-encoded
   const schemeEnd = uri.indexOf('://');
   if (schemeEnd !== -1) {
-    const lastAtIndex = uri.lastIndexOf('@');
-    if (lastAtIndex > schemeEnd) {
+    const afterScheme = uri.substring(schemeEnd + 3);
+    const slashOrQueryIdx = afterScheme.search(/[\/\?]/);
+    const hostPart = slashOrQueryIdx !== -1 ? afterScheme.substring(0, slashOrQueryIdx) : afterScheme;
+    const lastAtInHostPart = hostPart.lastIndexOf('@');
+    if (lastAtInHostPart !== -1) {
       const scheme = uri.substring(0, schemeEnd + 3);
-      const creds = uri.substring(schemeEnd + 3, lastAtIndex);
-      const hostAndRest = uri.substring(lastAtIndex + 1);
+      const creds = hostPart.substring(0, lastAtInHostPart);
+      const hostAndPath = afterScheme.substring(lastAtInHostPart + 1);
       const colonIdx = creds.indexOf(':');
       if (colonIdx !== -1) {
         const username = creds.substring(0, colonIdx);
@@ -42,7 +45,7 @@ function sanitizeMongoUri(val?: string): string {
             // Raw string was not encoded
           }
           const safePassword = encodeURIComponent(decodedPass);
-          return `${scheme}${username}:${safePassword}@${hostAndRest}`;
+          return `${scheme}${username}:${safePassword}@${hostAndPath}`;
         } catch {
           return uri;
         }
