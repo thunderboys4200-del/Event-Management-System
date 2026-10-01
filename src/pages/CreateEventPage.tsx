@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import { eventsApi } from '../services/api';
 import { useToast } from '../components/Toast';
-import { EVENT_DEPARTMENT_GROUPS } from '../constants/eventDepartments';
 
 export const CreateEventPage: React.FC = () => {
   const navigate = useNavigate();
@@ -48,6 +47,18 @@ export const CreateEventPage: React.FC = () => {
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const categories = ['Technical', 'Cultural', 'Placement','Tech_Teach','Sports', 'Seminar', 'Workshop', 'Arts'];
+  const departments = [
+    'Computer Science & Engineering',
+    'Mechanical & Robotics Engineering',
+    'Electrical & Electronics Engineering',
+    'Artificial Intelligence & Data Science',
+    'Fine Arts & Student Council',
+    'Placement & Trainning',
+    'Physical Education & Athletics',
+    'Humanities & Social Sciences',
+    'Business Administration & Management'
+  ];
+
   const handlePosterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -195,7 +206,7 @@ export const CreateEventPage: React.FC = () => {
   };
 
   return (
-    <div className="page-canvas min-h-screen bg-slate-50/80 dark:bg-slate-950 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Navigation */}
         <div className="flex items-center justify-between">
@@ -250,7 +261,7 @@ export const CreateEventPage: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="event-department" className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
-                  Department / CSE Branch *
+                  Department *
                 </label>
                 <select
                   id="event-department"
@@ -259,16 +270,11 @@ export const CreateEventPage: React.FC = () => {
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 >
-                  <option value="">Select Host Department or CSE Branch</option>
-                  {EVENT_DEPARTMENT_GROUPS.map((group) => (
-                    <optgroup key={group.label} label={group.label}>
-                      {group.options.map((option) => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                      ))}
-                    </optgroup>
+                  <option value="">Select Host Department</option>
+                  {departments.map((d) => (
+                    <option key={d} value={d}>{d}</option>
                   ))}
                 </select>
-                <p className="mt-1.5 text-[11px] text-slate-500 dark:text-slate-400">Choose a CSE branch for CSE-hosted events; the existing department field stores this selection.</p>
               </div>
 
               <div>

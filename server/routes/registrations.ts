@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { db } from '../db';
+import { db, getBranchCode } from '../db';
 import { authenticateToken, requireStudent, requireStaff, AuthRequest } from '../middleware/auth';
 
 const router = Router();
@@ -54,10 +54,13 @@ router.post('/', authenticateToken, requireStudent, async (req: AuthRequest, res
 
     const registration = await db.createRegistration(studentId, eventId);
 
+    // The QR token is only ever served by the Event Pass endpoint
+    const { qrToken: _qrToken, ...safeRegistration } = registration;
+
     return res.status(201).json({
       success: true,
       message: 'Event registered successfully!',
-      data: registration,
+      data: safeRegistration,
     });
   } catch (err: any) {
     console.error('Registration error:', err);
@@ -90,6 +93,62 @@ router.get('/my', authenticateToken, requireStudent, async (req: AuthRequest, re
       success: false,
       message: 'Failed to retrieve registrations',
     });
+  }
+});
+
+// GET /api/registrations/:id/pass (Student only) - QR Event Pass for one of the student's own registrations
+router.get('/:id/pass', authenticateToken, requireStudent, async (req: AuthRequest, res: Response) => {
+  try {
+    const registration = await db.getRegistrationById(req.params.id);
+
+    // Same 404 whether the registration is missing or belongs to someone else (no enumeration)
+    if (!registration || String(registration.student) !== String(req.user!.id)) {
+      return res.status(404).json({ success: false, message: 'Registration not found' });
+    }
+
+    if ((registration.status || 'confirmed') === 'cancelled') {
+      return res.status(409).json({ success: false, message: 'This registration has been cancelled, so no Event Pass is available.' });
+    }
+
+    const [event, student] = await Promise.all([
+      db.getEventById(String(registration.event)),
+      db.findUserById(String(registration.student)),
+    ]);
+    if (!event || !student) {
+      return res.status(404).json({ success: false, message: 'Event or student record not found' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        id: registration._id || registration.id,
+        registrationId: registration.registrationId,
+        qrToken: registration.qrToken,
+        status: registration.status || 'confirmed',
+        attendanceStatus: registration.attendanceStatus || 'NOT_CHECKED_IN',
+        checkedInAt: registration.checkedInAt,
+        event: {
+          id: event._id || event.id,
+          title: event.title,
+          date: event.date,
+          time: event.time,
+          venue: event.venue,
+          posterUrl: event.posterUrl,
+          status: event.status || 'active',
+        },
+        student: {
+          name: student.name,
+          studentId: student.loginId,
+          department: student.department,
+          branch: getBranchCode(student.department),
+          year: student.year,
+          section: student.section,
+        },
+      },
+    });
+  } catch (err: any) {
+    console.error('Error building event pass:', err);
+    return res.status(500).json({ success: false, message: 'Failed to load Event Pass' });
   }
 });
 

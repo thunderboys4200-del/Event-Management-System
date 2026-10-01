@@ -63,7 +63,7 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="page-canvas min-h-[85vh] flex items-center justify-center px-4 py-12 bg-slate-50/80 dark:bg-slate-950">
+    <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 bg-slate-50 dark:bg-slate-950">
       <div className="w-full max-w-2xl space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-2">

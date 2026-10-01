@@ -57,8 +57,8 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   }
 
   return (
-    <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-gradient-to-br from-white to-slate-50 p-8 text-center shadow-sm dark:border-slate-800 dark:from-slate-900 dark:to-slate-950 sm:p-12">
-      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-md shadow-slate-950/[0.03] dark:border-slate-700 dark:bg-slate-800">
+    <div className="flex flex-col items-center justify-center p-8 sm:p-12 text-center rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40">
+      <div className="w-16 h-16 rounded-2xl bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 flex items-center justify-center mb-4">
         {defaultIcon}
       </div>
       <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white mb-1.5">
@@ -71,7 +71,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       {actionHref && (
         <Link
           to={actionHref}
-          className="focus-ring inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition-colors"
         >
           {actionText || 'Browse Events'}
         </Link>
@@ -80,7 +80,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       {onActionClick && !actionHref && (
         <button
           onClick={onActionClick}
-          className="focus-ring inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition-colors"
         >
           {actionText || 'Take Action'}
         </button>

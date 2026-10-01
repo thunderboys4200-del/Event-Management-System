@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './components/Toast';
@@ -19,12 +19,15 @@ import { StaffDashboard } from './pages/StaffDashboard';
 import { CreateEventPage } from './pages/CreateEventPage';
 import { EditEventPage } from './pages/EditEventPage';
 
+// Loaded on demand: it pulls in the camera/QR-scanning library, which only staff need
+const QrCheckInPage = lazy(() => import('./pages/QrCheckInPage').then((m) => ({ default: m.QrCheckInPage })));
+
 export default function App() {
   return (
     <Router>
       <ToastProvider>
         <AuthProvider>
-          <div className="app-shell flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-indigo-500 selection:text-white">
+          <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-indigo-500 selection:text-white">
             <Navbar />
             <main className="flex-1">
               <Routes>
@@ -76,6 +79,22 @@ export default function App() {
                   element={
                     <ProtectedRoute allowedRole="staff">
                       <CreateEventPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/staff/checkin"
+                  element={
+                    <ProtectedRoute allowedRole="staff">
+                      <Suspense
+                        fallback={
+                          <div className="min-h-[70vh] flex items-center justify-center">
+                            <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                          </div>
+                        }
+                      >
+                        <QrCheckInPage />
+                      </Suspense>
                     </ProtectedRoute>
                   }
                 />

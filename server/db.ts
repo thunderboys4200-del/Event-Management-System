@@ -2,6 +2,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 import fs from 'fs';
 import path from 'path';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { config } from './config';
 
 // ----------------------------------------------------
@@ -16,6 +17,7 @@ export interface IUser {
   role: 'student' | 'staff';
   department: string;
   year?: string;
+  section?: string;
   mobileNumber?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -35,10 +37,14 @@ export interface IEvent {
   posterUrl: string;
   photoUrls: string[];
   videoUrls?: string[];
+  status?: 'active' | 'cancelled';
   createdBy?: string;
   createdAt?: string;
   updatedAt?: string;
 }
+
+export type AttendanceStatus = 'NOT_CHECKED_IN' | 'CHECKED_IN';
+export type RegistrationStatus = 'confirmed' | 'cancelled';
 
 export interface IRegistration {
   _id?: string;
@@ -48,7 +54,54 @@ export interface IRegistration {
   registeredAt?: string;
   createdAt?: string;
   updatedAt?: string;
+  // QR check-in & attendance (optional so pre-existing records stay valid)
+  registrationId?: string;           // Human-readable ID, e.g. REG-2026-00124
+  status?: RegistrationStatus;       // Defaults to 'confirmed'
+  qrToken?: string;                  // Secret random token encoded in the QR
+  attendanceStatus?: AttendanceStatus; // Defaults to 'NOT_CHECKED_IN'
+  checkedInAt?: string;
+  checkedInBy?: string;              // Staff user id
+  checkedInByName?: string;          // Staff display name (denormalised)
 }
+
+export interface AttendanceRow {
+  id: string;
+  registrationId: string;
+  status: RegistrationStatus;
+  attendanceStatus: AttendanceStatus;
+  registeredAt?: string;
+  checkedInAt?: string;
+  checkedInBy?: string;
+  student: {
+    id: string;
+    name: string;
+    loginId: string;
+    department: string;
+    branch: string;
+    year?: string;
+    section?: string;
+  };
+}
+
+export interface AttendanceStats {
+  registered: number;
+  checkedIn: number;
+  notCheckedIn: number;
+  percentage: number;
+  recentCheckIns: Array<{
+    registrationId: string;
+    name: string;
+    department: string;
+    branch: string;
+    checkedInAt: string;
+  }>;
+}
+
+export type CheckInOutcome =
+  | { outcome: 'checked_in'; registration: IRegistration }
+  | { outcome: 'already_checked_in'; registration: IRegistration }
+  | { outcome: 'cancelled'; registration: IRegistration }
+  | { outcome: 'not_found' };
 
 // ----------------------------------------------------
 // Mongoose Schemas
@@ -60,6 +113,7 @@ const UserSchema = new Schema({
   role: { type: String, enum: ['student', 'staff'], required: true },
   department: { type: String, required: true },
   year: { type: String },
+  section: { type: String },
   mobileNumber: { type: String },
 }, { timestamps: true });
 
@@ -75,6 +129,7 @@ const EventSchema = new Schema({
   posterUrl: { type: String, default: '' },
   photoUrls: { type: [String], default: [] },
   videoUrls: { type: [String], default: [] },
+  status: { type: String, enum: ['active', 'cancelled'], default: 'active' },
   createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 
@@ -82,10 +137,21 @@ const RegistrationSchema = new Schema({
   student: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   event: { type: Schema.Types.ObjectId, ref: 'Event', required: true },
   registeredAt: { type: Date, default: Date.now },
+  // QR check-in & attendance
+  registrationId: { type: String },
+  status: { type: String, enum: ['confirmed', 'cancelled'], default: 'confirmed' },
+  qrToken: { type: String },
+  attendanceStatus: { type: String, enum: ['NOT_CHECKED_IN', 'CHECKED_IN'], default: 'NOT_CHECKED_IN' },
+  checkedInAt: { type: Date },
+  checkedInBy: { type: String },
+  checkedInByName: { type: String },
 }, { timestamps: true });
 
 // Compound unique constraint to prevent duplicate registrations
 RegistrationSchema.index({ student: 1, event: 1 }, { unique: true });
+// Sparse so legacy documents without these fields do not collide before backfill
+RegistrationSchema.index({ qrToken: 1 }, { unique: true, sparse: true });
+RegistrationSchema.index({ registrationId: 1 }, { unique: true, sparse: true });
 
 let MongooseUserModel: Model<any>;
 let MongooseEventModel: Model<any>;
@@ -139,6 +205,187 @@ function writeLocalDB(state: DBState) {
   fs.writeFileSync(DB_FILE, JSON.stringify(state, null, 2), 'utf-8');
 }
 
+// ----------------------------------------------------
+// QR / Attendance helpers
+// ----------------------------------------------------
+// 24 random bytes -> 32 URL-safe base64 characters (192 bits of entropy)
+export const QR_TOKEN_PATTERN = /^[A-Za-z0-9_-]{32}$/;
+
+export function generateQrToken(): string {
+  return crypto.randomBytes(24).toString('base64url');
+}
+
+const BRANCH_CODES: Record<string, string> = {
+  'Computer Science & Engineering': 'CSE',
+  'Information Technology': 'IT',
+  'Electronics & Communication Engineering': 'ECE',
+  'Electrical & Electronics Engineering': 'EEE',
+  'Mechanical Engineering': 'MECH',
+  'Civil Engineering': 'CIVIL',
+  'Placement & Trainning': 'P&T',
+  'Artificial Intelligence & Data Science': 'AI&DS',
+  'Biotechnology': 'BT',
+  'Management Studies & MBA': 'MBA',
+  'Humanities & Social Sciences': 'H&S',
+};
+
+// The user model stores only a department name, so the short branch code is derived from it.
+export function getBranchCode(department?: string): string {
+  if (!department) return '';
+  const known = BRANCH_CODES[department.trim()];
+  if (known) return known;
+  return department
+    .split(/[^A-Za-z]+/)
+    .filter((w) => w && !['and', 'of', 'the'].includes(w.toLowerCase()))
+    .map((w) => w[0].toUpperCase())
+    .join('');
+}
+
+const toIso = (d: any): string | undefined => (d ? new Date(d).toISOString() : undefined);
+
+const formatRegistrationId = (year: number, seq: number) => `REG-${year}-${String(seq).padStart(5, '0')}`;
+
+function parseRegistrationSeq(id: string | undefined, year: number): number {
+  if (!id) return 0;
+  const m = new RegExp(`^REG-${year}-(\\d+)$`).exec(id);
+  return m ? parseInt(m[1], 10) : 0;
+}
+
+function nextLocalRegistrationId(state: DBState, year: number): string {
+  const max = state.registrations.reduce((acc, r) => Math.max(acc, parseRegistrationSeq(r.registrationId, year)), 0);
+  return formatRegistrationId(year, max + 1);
+}
+
+async function nextMongoRegistrationId(year: number): Promise<string> {
+  const last = await MongooseRegistrationModel.findOne({ registrationId: new RegExp(`^REG-${year}-`) })
+    .sort({ registrationId: -1 })
+    .select('registrationId');
+  return formatRegistrationId(year, parseRegistrationSeq(last?.registrationId, year) + 1);
+}
+
+function withAttendanceDefaults<T extends IRegistration>(r: T): T {
+  return { ...r, status: r.status || 'confirmed', attendanceStatus: r.attendanceStatus || 'NOT_CHECKED_IN' };
+}
+
+function idOf(v: any): string {
+  if (!v) return '';
+  if (typeof v === 'string') return v;
+  return (v._id ?? v).toString();
+}
+
+function recordFromDoc(r: any): IRegistration {
+  return {
+    _id: r._id.toString(),
+    id: r._id.toString(),
+    student: idOf(r.student),
+    event: idOf(r.event),
+    registeredAt: toIso(r.registeredAt),
+    createdAt: toIso(r.createdAt),
+    updatedAt: toIso(r.updatedAt),
+    registrationId: r.registrationId,
+    status: r.status || 'confirmed',
+    qrToken: r.qrToken,
+    attendanceStatus: r.attendanceStatus || 'NOT_CHECKED_IN',
+    checkedInAt: toIso(r.checkedInAt),
+    checkedInBy: r.checkedInBy || undefined,
+    checkedInByName: r.checkedInByName || undefined,
+  };
+}
+
+function buildAttendanceRow(rec: IRegistration, student: any): AttendanceRow | null {
+  if (!student) return null;
+  return {
+    id: rec.id || rec._id || '',
+    registrationId: rec.registrationId || '',
+    status: rec.status || 'confirmed',
+    attendanceStatus: rec.attendanceStatus || 'NOT_CHECKED_IN',
+    registeredAt: rec.registeredAt,
+    checkedInAt: rec.checkedInAt,
+    checkedInBy: rec.checkedInByName,
+    student: {
+      id: idOf(student),
+      name: student.name,
+      loginId: student.loginId,
+      department: student.department,
+      branch: getBranchCode(student.department),
+      year: student.year,
+      section: student.section,
+    },
+  };
+}
+
+export function computeAttendanceStats(rows: AttendanceRow[]): AttendanceStats {
+  const active = rows.filter((r) => r.status !== 'cancelled');
+  const checkedIn = active.filter((r) => r.attendanceStatus === 'CHECKED_IN');
+  const registered = active.length;
+  const recentCheckIns = checkedIn
+    .filter((r) => r.checkedInAt)
+    .sort((a, b) => new Date(b.checkedInAt!).getTime() - new Date(a.checkedInAt!).getTime())
+    .slice(0, 10)
+    .map((r) => ({
+      registrationId: r.registrationId,
+      name: r.student.name,
+      department: r.student.department,
+      branch: r.student.branch,
+      checkedInAt: r.checkedInAt!,
+    }));
+  return {
+    registered,
+    checkedIn: checkedIn.length,
+    notCheckedIn: registered - checkedIn.length,
+    percentage: registered === 0 ? 0 : Math.round((checkedIn.length / registered) * 100),
+    recentCheckIns,
+  };
+}
+
+// Give pre-existing registrations a status, registration ID and QR token (idempotent).
+function backfillLocalRegistrations() {
+  const state = readLocalDB();
+  let changed = false;
+  const used = new Set(state.registrations.map((r) => r.qrToken).filter(Boolean) as string[]);
+  const ordered = [...state.registrations].sort((a, b) => (a.registeredAt || '').localeCompare(b.registeredAt || ''));
+  for (const r of ordered) {
+    if (!r.status) { r.status = 'confirmed'; changed = true; }
+    if (!r.attendanceStatus) { r.attendanceStatus = 'NOT_CHECKED_IN'; changed = true; }
+    if (!r.qrToken) {
+      let t: string;
+      do { t = generateQrToken(); } while (used.has(t));
+      used.add(t);
+      r.qrToken = t;
+      changed = true;
+    }
+    if (!r.registrationId) {
+      const year = r.registeredAt ? new Date(r.registeredAt).getFullYear() : new Date().getFullYear();
+      r.registrationId = nextLocalRegistrationId(state, year);
+      changed = true;
+    }
+  }
+  if (changed) {
+    writeLocalDB(state);
+    console.log('Backfilled QR tokens / registration IDs for existing local registrations.');
+  }
+}
+
+async function backfillMongoRegistrations() {
+  const pending = await MongooseRegistrationModel.find({
+    $or: [{ qrToken: { $in: [null, ''] } }, { registrationId: { $in: [null, ''] } }],
+  }).sort({ registeredAt: 1 });
+  for (const doc of pending) {
+    const set: Record<string, any> = {};
+    if (!doc.qrToken) set.qrToken = generateQrToken();
+    if (!doc.registrationId) {
+      const year = doc.registeredAt ? new Date(doc.registeredAt).getFullYear() : new Date().getFullYear();
+      set.registrationId = await nextMongoRegistrationId(year);
+    }
+    if (!doc.status) set.status = 'confirmed';
+    if (!doc.attendanceStatus) set.attendanceStatus = 'NOT_CHECKED_IN';
+    await MongooseRegistrationModel.updateOne({ _id: doc._id }, { $set: set });
+  }
+  if (pending.length > 0) {
+    console.log(`Backfilled QR tokens / registration IDs for ${pending.length} existing MongoDB registrations.`);
+  }
+}
+
 let isMongoConnected = false;
 
 export async function connectDB() {
@@ -149,12 +396,21 @@ export async function connectDB() {
       isMongoConnected = true;
       console.log('Successfully connected to MongoDB Atlas');
       await seedMongoDatabase();
+      await backfillMongoRegistrations();
       return;
     } catch (err) {
-      console.warn('MongoDB Atlas connection failed or unavailable. Falling back to local persistent store.', (err as Error).message);
+      console.error('CRITICAL: MongoDB Atlas connection failed:', (err as Error).message);
+      if (config.isProduction) {
+        throw new Error(`Failed to connect to MongoDB Atlas: ${(err as Error).message}`);
+      }
+      console.warn('Falling back to local persistent file store in non-production environment.');
     }
   } else {
-    console.log('No MONGODB_URI provided in environment. Running with local persistent database.');
+    if (config.isProduction) {
+      console.warn('WARNING: MONGODB_URI is not set in production. Using local persistent store (ephemeral on hosting platforms).');
+    } else {
+      console.log('No MONGODB_URI provided in environment. Running with local persistent database.');
+    }
   }
 
   ensureDirectories();
@@ -202,6 +458,9 @@ export const db = {
         password: u.password,
         role: u.role,
         department: u.department,
+        year: u.year,
+        section: u.section,
+        mobileNumber: u.mobileNumber,
       };
     }
     const state = readLocalDB();
@@ -550,18 +809,29 @@ export const db = {
       if (existing) {
         throw new Error('Already registered for this event');
       }
-      const reg = await MongooseRegistrationModel.create({
-        student: studentId,
-        event: eventId,
-        registeredAt: new Date(),
-      });
-      return {
-        _id: reg._id.toString(),
-        id: reg._id.toString(),
-        student: studentId,
-        event: eventId,
-        registeredAt: reg.registeredAt.toISOString(),
-      };
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const registrationId = await nextMongoRegistrationId(new Date().getFullYear());
+        try {
+          const reg = await MongooseRegistrationModel.create({
+            student: studentId,
+            event: eventId,
+            registeredAt: new Date(),
+            registrationId,
+            status: 'confirmed',
+            qrToken: generateQrToken(),
+            attendanceStatus: 'NOT_CHECKED_IN',
+          });
+          return recordFromDoc(reg);
+        } catch (err: any) {
+          if (err?.code === 11000) {
+            const msg = String(err.message || '');
+            if (msg.includes('registrationId') || msg.includes('qrToken')) continue; // ID collision: retry
+            throw new Error('Already registered for this event');
+          }
+          throw err;
+        }
+      }
+      throw new Error('Could not allocate a registration ID');
     }
     const state = readLocalDB();
     const existing = state.registrations.find(
@@ -571,14 +841,19 @@ export const db = {
       throw new Error('Already registered for this event');
     }
     const newId = 'reg_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+    const now = new Date().toISOString();
     const newReg: IRegistration = {
       _id: newId,
       id: newId,
       student: studentId,
       event: eventId,
-      registeredAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      registeredAt: now,
+      createdAt: now,
+      updatedAt: now,
+      registrationId: nextLocalRegistrationId(state, new Date().getFullYear()),
+      status: 'confirmed',
+      qrToken: generateQrToken(),
+      attendanceStatus: 'NOT_CHECKED_IN',
     };
     state.registrations.push(newReg);
     writeLocalDB(state);
@@ -595,6 +870,14 @@ export const db = {
   },
 
   async getStudentRegistrations(studentId: string): Promise<any[]> {
+    // Attendance fields are additive; the QR token is intentionally NOT included here
+    // (it is only returned by the dedicated Event Pass endpoint).
+    const attendanceFields = (rec: IRegistration) => ({
+      registrationId: rec.registrationId,
+      status: rec.status || 'confirmed',
+      attendanceStatus: rec.attendanceStatus || 'NOT_CHECKED_IN',
+      checkedInAt: rec.checkedInAt,
+    });
     if (isMongoConnected) {
       const regs = await MongooseRegistrationModel.find({ student: studentId })
         .populate('event')
@@ -603,6 +886,7 @@ export const db = {
         _id: r._id.toString(),
         id: r._id.toString(),
         registeredAt: r.registeredAt,
+        ...attendanceFields(recordFromDoc(r)),
         event: r.event ? {
           _id: (r.event as any)._id.toString(),
           id: (r.event as any)._id.toString(),
@@ -615,6 +899,7 @@ export const db = {
           venue: (r.event as any).venue,
           registrationDeadline: (r.event as any).registrationDeadline,
           posterUrl: (r.event as any).posterUrl,
+          status: (r.event as any).status || 'active',
         } : null
       })).filter(r => r.event !== null);
     }
@@ -626,12 +911,19 @@ export const db = {
         _id: r._id,
         id: r._id,
         registeredAt: r.registeredAt,
+        ...attendanceFields(r),
         event: event ? { ...event, id: event._id } : null,
       };
     }).filter(r => r.event !== null);
   },
 
   async getEventRegistrations(eventId: string): Promise<any[]> {
+    const attendanceFields = (rec: IRegistration) => ({
+      registrationId: rec.registrationId,
+      status: rec.status || 'confirmed',
+      attendanceStatus: rec.attendanceStatus || 'NOT_CHECKED_IN',
+      checkedInAt: rec.checkedInAt,
+    });
     if (isMongoConnected) {
       const regs = await MongooseRegistrationModel.find({ event: eventId })
         .populate('student', '-password')
@@ -640,6 +932,7 @@ export const db = {
         _id: r._id.toString(),
         id: r._id.toString(),
         registeredAt: r.registeredAt,
+        ...attendanceFields(recordFromDoc(r)),
         student: r.student ? {
           _id: (r.student as any)._id.toString(),
           id: (r.student as any)._id.toString(),
@@ -660,6 +953,7 @@ export const db = {
         _id: r._id,
         id: r._id,
         registeredAt: r.registeredAt,
+        ...attendanceFields(r),
         student: user ? {
           _id: user._id,
           id: user._id,
@@ -672,6 +966,77 @@ export const db = {
         } : null,
       };
     }).filter(r => r.student !== null);
+  },
+
+  // ---- QR Event Pass / Attendance ----
+  async getRegistrationById(id: string): Promise<IRegistration | null> {
+    if (isMongoConnected) {
+      if (!mongoose.isValidObjectId(id)) return null;
+      const r = await MongooseRegistrationModel.findById(id);
+      return r ? recordFromDoc(r) : null;
+    }
+    const state = readLocalDB();
+    const r = state.registrations.find(x => x._id === id || x.id === id);
+    return r ? withAttendanceDefaults({ ...r, id: r._id }) : null;
+  },
+
+  async findRegistrationByQrToken(token: string): Promise<IRegistration | null> {
+    if (isMongoConnected) {
+      const r = await MongooseRegistrationModel.findOne({ qrToken: token });
+      return r ? recordFromDoc(r) : null;
+    }
+    const state = readLocalDB();
+    const r = state.registrations.find(x => x.qrToken === token);
+    return r ? withAttendanceDefaults({ ...r, id: r._id }) : null;
+  },
+
+  // Atomically marks attendance. The original check-in time is never overwritten.
+  async checkInRegistration(regId: string, staff: { id: string; name: string }): Promise<CheckInOutcome> {
+    if (isMongoConnected) {
+      const updated = await MongooseRegistrationModel.findOneAndUpdate(
+        { _id: regId, status: { $ne: 'cancelled' }, attendanceStatus: { $ne: 'CHECKED_IN' } },
+        { $set: { attendanceStatus: 'CHECKED_IN', checkedInAt: new Date(), checkedInBy: staff.id, checkedInByName: staff.name } },
+        { new: true }
+      );
+      if (updated) return { outcome: 'checked_in', registration: recordFromDoc(updated) };
+      const current = await MongooseRegistrationModel.findById(regId);
+      if (!current) return { outcome: 'not_found' };
+      const rec = recordFromDoc(current);
+      return rec.status === 'cancelled'
+        ? { outcome: 'cancelled', registration: rec }
+        : { outcome: 'already_checked_in', registration: rec };
+    }
+    // Local store: read-modify-write below is fully synchronous, so it is atomic within this process.
+    const state = readLocalDB();
+    const r = state.registrations.find(x => x._id === regId);
+    if (!r) return { outcome: 'not_found' };
+    if ((r.status || 'confirmed') === 'cancelled') return { outcome: 'cancelled', registration: withAttendanceDefaults(r) };
+    if (r.attendanceStatus === 'CHECKED_IN') return { outcome: 'already_checked_in', registration: withAttendanceDefaults(r) };
+    const now = new Date().toISOString();
+    r.attendanceStatus = 'CHECKED_IN';
+    r.checkedInAt = now;
+    r.checkedInBy = staff.id;
+    r.checkedInByName = staff.name;
+    r.updatedAt = now;
+    writeLocalDB(state);
+    return { outcome: 'checked_in', registration: withAttendanceDefaults(r) };
+  },
+
+  async getEventAttendance(eventId: string): Promise<AttendanceRow[]> {
+    let rows: (AttendanceRow | null)[];
+    if (isMongoConnected) {
+      const regs = await MongooseRegistrationModel.find({ event: eventId }).populate('student', '-password');
+      rows = regs.map(r => buildAttendanceRow(recordFromDoc(r), r.student));
+    } else {
+      const state = readLocalDB();
+      rows = state.registrations
+        .filter(r => r.event === eventId)
+        .map(r => buildAttendanceRow(
+          withAttendanceDefaults({ ...r, id: r._id }),
+          state.users.find(u => u._id === r.student || u.id === r.student)
+        ));
+    }
+    return (rows.filter(Boolean) as AttendanceRow[]).sort((a, b) => a.student.name.localeCompare(b.student.name));
   },
 
   async getRegistrationCountForEvent(eventId: string): Promise<number> {
@@ -932,6 +1297,7 @@ function initLocalDBSeed() {
     });
     console.log('Seeded local database with development users (STU001, STF001) and realistic college events.');
   }
+  backfillLocalRegistrations();
 }
 
 async function seedMongoDatabase() {

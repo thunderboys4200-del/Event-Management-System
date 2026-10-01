@@ -73,78 +73,13 @@
       "mobileNumber": "9444423334",
       "createdAt": "2026-09-11T13:30:59.658Z",
       "updatedAt": "2026-09-11T13:30:59.658Z"
-    },
-    {
-      "_id": "usr_stu_1790321432300_rnxj",
-      "id": "usr_stu_1790321432300_rnxj",
-      "name": "mubarak",
-      "loginId": "MUBU023",
-      "password": "$2b$10$VPaz1WzSRB7fiYYKZ9im6.hfERo0JXkHcP.rBSkBvJUIgAKaJCfKW",
-      "role": "student",
-      "department": "Civil Engineering",
-      "year": "4th Year",
-      "mobileNumber": "9626213257",
-      "createdAt": "2026-09-25T07:30:32.300Z",
-      "updatedAt": "2026-09-25T07:30:32.300Z"
-    },
-    {
-      "_id": "usr_stu_1790330374824_p2mb",
-      "id": "usr_stu_1790330374824_p2mb",
-      "name": "mohammed Farook",
-      "loginId": "STF003",
-      "password": "$2b$10$Nq4NM4yHJwlKcGQSd0YipeII2Ti1qVbRsqgr2Wo39MQM5iWjqbTra",
-      "role": "student",
-      "department": "Information Technology",
-      "year": "2nd Year",
-      "mobileNumber": "9585068767",
-      "createdAt": "2026-09-25T09:59:34.824Z",
-      "updatedAt": "2026-09-25T09:59:34.824Z"
-    },
-    {
-      "_id": "usr_stu_1790406738347_cind",
-      "id": "usr_stu_1790406738347_cind",
-      "name": "sam",
-      "loginId": "stu123",
-      "password": "$2b$10$1yayBxoemIcwYUDkThbU0uSA4odsPXku2ekVZRhdfyfSin.DCjy52",
-      "role": "student",
-      "department": "Computer Science & Engineering",
-      "year": "2nd Year",
-      "mobileNumber": "123456",
-      "createdAt": "2026-09-26T07:12:18.347Z",
-      "updatedAt": "2026-09-26T07:12:18.347Z"
-    },
-    {
-      "_id": "usr_stu_1790408212727_ibbf",
-      "id": "usr_stu_1790408212727_ibbf",
-      "name": "gokul",
-      "loginId": "sty123",
-      "password": "$2b$10$a5aHrnK5cDKWceSE8YhABuf5tjIlUiaTjGLl7emA2vQxpiALKXTZS",
-      "role": "student",
-      "department": "Biotechnology",
-      "year": "3rd Year",
-      "mobileNumber": "98765433",
-      "createdAt": "2026-09-26T07:36:52.727Z",
-      "updatedAt": "2026-09-26T07:36:52.727Z"
-    },
-    {
-      "_id": "usr_stu_1790741656266_z1gv",
-      "id": "usr_stu_1790741656266_z1gv",
-      "name": "kk",
-      "loginId": "kk123",
-      "password": "$2b$10$AEph3N/LaTbcJF3V2Ff93.y4uSvsZIg6ltjtdcQ556z/x99BGEK.6",
-      "role": "student",
-      "department": "Artificial Intelligence & Data Science",
-      "year": "4th Year",
-      "mobileNumber": "6385509519",
-      "createdAt": "2026-09-30T04:14:16.266Z",
-      "updatedAt": "2026-09-30T04:14:16.266Z"
     }
   ],
   "events": [
     {
       "title": "Placement Drive",
       "description": "Campus Placement Drive is a career-focused recruitment event organized by the Training and Placement Cell of Sri Venkateswara College of Engineering & Technology (SVCET), Thirupachur, Thiruvallur.\r\n\r\nThe event provides students with an opportunity to interact with and get recruited by Besant Technologies Pvt. Ltd. through the campus recruitment process. It aims to connect talented students with career opportunities, helping them begin their professional journey and build a successful career.",
-      "department": "Placement & Training",
+      "department": "Placement & Trainning",
       "category": "Placement",
       "date": "2026-09-03",
       "time": "10:00 AM",
@@ -161,12 +96,12 @@
       "_id": "evt_1789141729341_p9d0p",
       "id": "evt_1789141729341_p9d0p",
       "createdAt": "2026-09-11T15:48:49.341Z",
-      "updatedAt": "2026-09-13T01:04:30.990Z"
+      "updatedAt": "2026-09-11T15:56:30.856Z"
     },
     {
       "title": "Graduation",
       "description": "Graduation Day is a special occasion celebrating the academic achievements, dedication, and hard work of graduating students. The event marks an important milestone as students complete their academic journey and prepare to begin their professional careers or pursue higher studies.\r\n\r\nThe celebration brings together graduating students, faculty members, college management, parents, and guests to honour the achievements of the graduating batch. The programme includes the presentation of degrees, certificates, medals, and awards, along with inspiring speeches and memorable moments.\r\n\r\nGraduation Day is a celebration of achievement, growth, and new beginnings, creating lasting memories for students as they take their next step into the future.",
-      "department": " Management",
+      "department": "Business Administration & Management",
       "category": "Cultural",
       "date": "2026-09-13",
       "time": "10:00 AM",
@@ -179,12 +114,12 @@
       "_id": "evt_1789143229661_sbfdu",
       "id": "evt_1789143229661_sbfdu",
       "createdAt": "2026-09-11T16:13:49.661Z",
-      "updatedAt": "2026-09-13T01:32:42.711Z"
+      "updatedAt": "2026-09-11T16:13:49.661Z"
     },
     {
       "title": "DIGITRON'26",
       "description": "DIGITRON’26 is a National Level Technical Symposium organized by the Department of Computer Science and Engineering at Sri Venkateswara College of Engineering & Technology. The symposium provides students with an exciting platform to demonstrate their technical knowledge, creativity, problem-solving abilities, and innovative ideas through a variety of technical and non-technical events.\r\n\r\nThe symposium features technical events such as Paper Presentation, Poster Making, Debugging, Tech Quiz, AI Prompt, and Web Development, along with engaging non-technical events including Free Fire, IPL Auction, Guess the Song, Connection, Speed Stacking, Box Cricket, and Puzzle Hunt.",
-      "department": "AI&DS",
+      "department": "Computer Science & Engineering",
       "category": "Technical",
       "date": "2026-02-25",
       "time": "10:00 AM",
@@ -201,143 +136,8 @@
       "_id": "evt_1789144356467_6csey",
       "id": "evt_1789144356467_6csey",
       "createdAt": "2026-09-11T16:32:36.467Z",
-      "updatedAt": "2026-09-13T02:53:09.491Z"
-    },
-    {
-      "title": "INDUCTION  PROGRAM",
-      "description": "Sri Venkateswara College of Engineering and Technology (SVCET) warmly welcomes its new students to the First Year Induction Program, marking the beginning of their exciting engineering journey.\r\n\r\nThe program is designed to help students become familiar with the institution, academic environment, campus facilities, support services, and student life. It also provides an opportunity for freshers to interact with faculty members, mentors, and inspiring guests while gaining valuable guidance for their personal and professional growth.\r\n\r\nThe event includes a Welcome Address, Introduction to the Institution, Academic Overview, Campus Facilities & Support Services, Student Induction & Mentorship Program, and an Interaction & Inspirational Session.\r\n\r\nCome together to begin a new journey of learning, growth, confidence, and excellence at SVCET.",
-      "department": " Management",
-      "category": "Cultural",
-      "date": "2026-09-07",
-      "time": "10:00 AM",
-      "venue": "Sri Venkateswara College of Engineering & Technology, Thirupachur, Thiruvallur",
-      "registrationDeadline": "2026-09-05",
-      "posterUrl": "/uploads/poster-1789263742155-497625736.jpg",
-      "photoUrls": [
-        "/uploads/photos-1789263742181-167562090.jpeg",
-        "/uploads/photos-1789263742200-101662911.jpg"
-      ],
-      "videoUrls": [
-        "/uploads/videos-1789263742222-963620517.mp4"
-      ],
-      "createdBy": "usr_staff_01",
-      "_id": "evt_1789263742581_zz6bt",
-      "id": "evt_1789263742581_zz6bt",
-      "createdAt": "2026-09-13T01:42:22.581Z",
-      "updatedAt": "2026-09-13T01:42:22.581Z"
-    },
-    {
-      "title": "IoT Innovate",
-      "description": "IoT Innovate – Two Day Workshop\r\n\r\nIoT Innovate is a two-day hands-on workshop focused on “Smart IoT Solutions: From Hardware to Cloud.” The workshop introduces participants to IoT concepts, sensors and actuators, ESP32-based development, cloud dashboards, data monitoring, automation, and real-world IoT applications.\r\n\r\nParticipants will gain practical experience in connecting hardware devices, collecting sensor data, integrating devices with the Blynk cloud platform, building real-time IoT applications, and implementing automation solutions.\r\n\r\nThe workshop is organized by the Department of CSE & ECE and is designed to help students develop practical IoT skills through hands-on sessions, live demonstrations, and expert guidance.\r\n\r\n📅 Date: 27 & 28 August 2026\r\n⏰ Time: 9:00 AM – 3:30 PM\r\n📍 Venue: CSC Lab",
-      "department": "CSE",
-      "category": "Technical",
-      "date": "2026-08-27",
-      "time": "10:00 AM",
-      "venue": "CSE  LAB",
-      "registrationDeadline": "2026-08-26",
-      "posterUrl": "/uploads/poster-1789264897988-149507902.jpeg",
-      "photoUrls": [
-        "/uploads/photos-1789264898021-839011319.jpeg",
-        "/uploads/photos-1789264898040-489898748.jpeg",
-        "/uploads/photos-1789264898046-432324620.jpeg",
-        "/uploads/photos-1789264898057-538299751.jpeg",
-        "/uploads/photos-1789264898069-411773986.jpeg",
-        "/uploads/photos-1789264898084-731987996.jpeg",
-        "/uploads/photos-1789264898095-866217501.jpeg"
-      ],
-      "videoUrls": [],
-      "createdBy": "usr_staff_01",
-      "_id": "evt_1789264898117_l23lq",
-      "id": "evt_1789264898117_l23lq",
-      "createdAt": "2026-09-13T02:01:38.117Z",
-      "updatedAt": "2026-09-13T02:01:38.117Z"
-    },
-    {
-      "title": "DEGREE TO DESTINY",
-      "description": "Degree to Destiny – Are You Ready for the Future Demand? is a seminar organized by the Department of Computer Science & Engineering, Sri Venkateswara College of Engineering and Technology, aimed at helping students understand the opportunities, skills, and career demands of the future.\r\n\r\nThe seminar will feature Mr. Murugan Kuppuswamy, CTO, BRIDGE – Partner, as the Chief Guest. The event brings together students and faculty to explore how academic qualifications can be transformed into meaningful career opportunities through the right skills, knowledge, and industry awareness.\r\n\r\nThe theme “Your Degree is the Start, Your Destiny is the Goal” highlights the importance of preparing students for evolving industry expectations and future career pathways.\r\n\r\n📅 Date: 18 August 2026\r\n⏰ Time: 1:00 PM\r\n📍 Venue: Placement Hall\r\n🎤 Chief Guest: Mr. Murugan Kuppuswamy, CTO, BRIDGE – Partner\r\n🏫 Organized by: Department of Computer Science & Engineering",
-      "department": "IT",
-      "category": "Technical",
-      "date": "2026-08-08",
-      "time": "01:00 PM",
-      "venue": "PLCEMENT HALL",
-      "registrationDeadline": "2026-08-07",
-      "posterUrl": "/uploads/poster-1789267696221-971036755.jpg",
-      "photoUrls": [
-        "/uploads/photos-1789267696250-404545193.jpeg",
-        "/uploads/photos-1789267696260-132711261.jpeg",
-        "/uploads/photos-1789267696273-888796168.jpeg"
-      ],
-      "videoUrls": [],
-      "createdBy": "usr_staff_01",
-      "_id": "evt_1789267696303_i8hs2",
-      "id": "evt_1789267696303_i8hs2",
-      "createdAt": "2026-09-13T02:48:16.303Z",
-      "updatedAt": "2026-09-13T02:52:52.968Z"
-    },
-    {
-      "title": "QSpiders Placement Drive",
-      "description": "QSpiders Placement Drive is a career-focused recruitment event organized at Sri Venkateswara College of Engineering & Technology (SVCET) to provide students with valuable placement opportunities and direct interaction with industry professionals.\r\n\r\n📅 Date: 05 October 2026\r\n📍 Venue: SVCET Auditorium, Thirupachur, Tiruvallur\r\n⏰ Time: 9:30 AM onwards\r\n\r\nThe drive will include registration, online assessment, technical interview, and HR interview rounds. Eligible students can participate to showcase their technical skills, explore career opportunities, and take their first step toward a professional career with QSpiders.",
-      "department": "Placement & Training",
-      "category": "Placement",
-      "date": "2026-10-05",
-      "time": "10:00 AM",
-      "venue": "Sri Venkateswara College of Engineering & Technology, Thirupachur, Thiruvallur",
-      "registrationDeadline": "2026-10-04",
-      "posterUrl": "/uploads/poster-1790316614445-935411918.png",
-      "photoUrls": [],
-      "videoUrls": [],
-      "createdBy": "usr_staff_01",
-      "_id": "evt_1790316614598_iz3yi",
-      "id": "evt_1790316614598_iz3yi",
-      "createdAt": "2026-09-25T06:10:14.598Z",
-      "updatedAt": "2026-09-25T06:10:14.598Z"
+      "updatedAt": "2026-09-11T16:32:36.467Z"
     }
   ],
-  "registrations": [
-    {
-      "_id": "reg_1789223471749_rukhq",
-      "id": "reg_1789223471749_rukhq",
-      "student": "usr_student_01",
-      "event": "evt_1789143229661_sbfdu",
-      "registeredAt": "2026-09-12T14:31:11.749Z",
-      "createdAt": "2026-09-12T14:31:11.749Z",
-      "updatedAt": "2026-09-12T14:31:11.749Z"
-    },
-    {
-      "_id": "reg_1790321573369_bsczt",
-      "id": "reg_1790321573369_bsczt",
-      "student": "usr_stu_1790321432300_rnxj",
-      "event": "evt_1790316614598_iz3yi",
-      "registeredAt": "2026-09-25T07:32:53.369Z",
-      "createdAt": "2026-09-25T07:32:53.369Z",
-      "updatedAt": "2026-09-25T07:32:53.369Z"
-    },
-    {
-      "_id": "reg_1790408311466_0ya3a",
-      "id": "reg_1790408311466_0ya3a",
-      "student": "usr_stu_1790408212727_ibbf",
-      "event": "evt_1790316614598_iz3yi",
-      "registeredAt": "2026-09-26T07:38:31.466Z",
-      "createdAt": "2026-09-26T07:38:31.466Z",
-      "updatedAt": "2026-09-26T07:38:31.466Z"
-    },
-    {
-      "_id": "reg_1790511924626_xxjit",
-      "id": "reg_1790511924626_xxjit",
-      "student": "usr_student_01",
-      "event": "evt_1790316614598_iz3yi",
-      "registeredAt": "2026-09-27T12:25:24.626Z",
-      "createdAt": "2026-09-27T12:25:24.626Z",
-      "updatedAt": "2026-09-27T12:25:24.626Z"
-    },
-    {
-      "_id": "reg_1790741688201_bnk3t",
-      "id": "reg_1790741688201_bnk3t",
-      "student": "usr_stu_1790741656266_z1gv",
-      "event": "evt_1790316614598_iz3yi",
-      "registeredAt": "2026-09-30T04:14:48.201Z",
-      "createdAt": "2026-09-30T04:14:48.201Z",
-      "updatedAt": "2026-09-30T04:14:48.201Z"
-    }
-  ]
+  "registrations": []
 }

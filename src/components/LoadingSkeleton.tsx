@@ -2,7 +2,7 @@ import React from 'react';
 
 export const EventCardSkeleton: React.FC = () => {
   return (
-    <div aria-hidden="true" className="flex flex-col overflow-hidden rounded-[1.35rem] border border-slate-200 bg-white shadow-sm animate-pulse dark:border-slate-800 dark:bg-slate-900">
+    <div className="flex flex-col bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm animate-pulse">
       <div className="aspect-[16/9] w-full bg-slate-200 dark:bg-slate-800" />
       <div className="p-5 space-y-3">
         <div className="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded" />

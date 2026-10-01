@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # College Event Portal
 
 A full-stack web application for college event management, student registration, event posters, past event vertical photo memories, and staff administration.
@@ -37,7 +36,7 @@ A full-stack web application for college event management, student registration,
    ```bash
    npm run dev
    ```
-   The application will be running at ``.
+   The application will be running at `http://localhost:3000`.
 
 3. **Production build**:
    ```bash
@@ -50,7 +49,12 @@ A full-stack web application for college event management, student registration,
 - **Frontend**: React 19, TypeScript, Tailwind CSS, Lucide Icons, React Router v7
 - **Backend**: Node.js, Express, Multer, JWT, BcryptJS, Mongoose / Local DB adapter
 - **Build Tool**: Vite 6, tsx, esbuild
-http://localhost:3000
-=======
-# Event-Management-System
->>>>>>> e013a1ab7a328b29ce148e871c4be839f6f2e913
+
+## QR Event Check-In & Attendance
+
+- **Students**: *My Registrations* → **View Event Pass** shows a digital pass with a QR code. The QR holds only a random 192-bit token (no name, ID or event data). The card and pass flip to **CHECKED IN** automatically after the scan.
+- **Staff**: **QR Check-In** (Staff Dashboard button, per-event row action, or navbar) → choose an event → **Start Camera** → scan. Results: Check-in successful, Already checked in (original time kept), Wrong event, Invalid QR, Cancelled registration/event. A manual-entry field is provided as a fallback. Live counts, recent check-ins, a searchable/filterable attendance list and **Download Attendance** (Excel) are on the same page.
+- **API** (all staff-only except the pass): `GET /api/registrations/:id/pass`, `POST /api/attendance/validate`, `POST /api/attendance/check-in`, `GET /api/attendance/events/:eventId`, `.../stats`, `.../export`.
+- **Existing data**: on startup, registrations created before this upgrade are backfilled with a registration ID (`REG-YYYY-00001`), a QR token and `NOT_CHECKED_IN`. Nothing is removed.
+- **Camera note**: browsers only allow camera access on `https://` or `localhost`. Serve the site over HTTPS for phones on your network/hosting.
+- Optional `APP_TIMEZONE` (default `Asia/Kolkata`) sets the time zone used in the Excel export.

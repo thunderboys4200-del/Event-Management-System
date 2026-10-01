@@ -58,7 +58,7 @@ export const DownloadPage: React.FC = () => {
             Complete Project Package
           </div>
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-3">
-            Download SVCET EVENT HUNTS
+            Download SVCET EVENT HUG
           </h1>
           <p className="text-indigo-200 text-base sm:text-lg leading-relaxed mb-6">
             Get the full production-ready application bundle including React frontend, Express.js backend, authentication engine, seed databases, and styling assets.

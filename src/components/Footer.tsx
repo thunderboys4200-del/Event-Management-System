@@ -1,11 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Calendar, ShieldCheck, Heart } from 'lucide-react';
-import { COLLEGE_BRAND_NAME, COLLEGE_LOGO_URL } from '../constants/branding';
 
 export const Footer: React.FC = () => {
   return (
-    <footer id="main-footer" className="border-t border-slate-200/80 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-950 text-slate-600 dark:text-slate-400 text-sm transition-colors mt-auto backdrop-blur-sm">
+    <footer id="main-footer" className="border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 text-sm transition-colors mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
           {/* Col 1: Brand & Purpose */}
@@ -13,13 +12,13 @@ export const Footer: React.FC = () => {
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-lg overflow-hidden bg-white flex items-center justify-center ring-1 ring-indigo-100 dark:ring-indigo-900">
                 <img
-                  src={COLLEGE_LOGO_URL}
+                  src="https://media.collegedekho.com/media/img/institute/logo/20621044_1881964892125805_23869069699565005_n.png"
                   alt="Sri Venkateswara College of Engineering and Technology logo"
                   className="w-full h-full object-contain"
                 />
               </div>
               <span className="font-bold text-slate-900 dark:text-white text-base">
-                {COLLEGE_BRAND_NAME}
+                SVCET EVENT HUG
               </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -98,7 +97,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-400 gap-3">
-          <p>© {new Date().getFullYear()} {COLLEGE_BRAND_NAME}. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} SVCET EVENT HUG. All rights reserved.</p>
           <div className="flex items-center gap-4 text-xs">
             <span>Created by Gokul M 4th Year AI&amp;DS</span>
             <span>•</span>

@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Clock, MapPin, Ticket, ArrowRight, CheckCircle2, QrCode } from 'lucide-react';
+import { Calendar, Clock, MapPin, Ticket, ArrowRight, CheckCircle2, QrCode, Circle } from 'lucide-react';
 import { registrationsApi } from '../services/api';
 import { Registration } from '../types';
 import { EmptyState } from '../components/EmptyState';
 import { EventCardSkeleton } from '../components/LoadingSkeleton';
+import { EventPassModal } from '../components/EventPassModal';
+import { formatTime } from '../utils/format';
 
 export const MyRegistrationsPage: React.FC = () => {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [passRegistrationId, setPassRegistrationId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchRegistrations = async () => {
@@ -26,6 +29,24 @@ export const MyRegistrationsPage: React.FC = () => {
     fetchRegistrations();
   }, []);
 
+  // Silent refresh so attendance flips to CHECKED IN without a page reload.
+  // Only runs while the tab is visible and at least one pass is still waiting to be scanned.
+  const hasPendingCheckIn = registrations.some(
+    (r) => (r.status || 'confirmed') !== 'cancelled' && r.attendanceStatus !== 'CHECKED_IN'
+  );
+  useEffect(() => {
+    if (!hasPendingCheckIn) return;
+    const timer = setInterval(async () => {
+      if (document.visibilityState !== 'visible') return;
+      try {
+        setRegistrations(await registrationsApi.getMyRegistrations());
+      } catch {
+        // Ignore transient errors; the next tick will retry
+      }
+    }, 8000);
+    return () => clearInterval(timer);
+  }, [hasPendingCheckIn]);
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return '';
     try {
@@ -40,8 +61,12 @@ export const MyRegistrationsPage: React.FC = () => {
     }
   };
 
+  const passRegistration = passRegistrationId
+    ? registrations.find((r) => (r.id || r._id) === passRegistrationId) || null
+    : null;
+
   return (
-    <div className="page-canvas min-h-screen bg-slate-50/80 dark:bg-slate-950 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -79,6 +104,8 @@ export const MyRegistrationsPage: React.FC = () => {
               const ev = reg.event;
               if (!ev) return null;
               const eventId = ev.id || ev._id;
+              const isCancelled = reg.status === 'cancelled';
+              const isCheckedIn = reg.attendanceStatus === 'CHECKED_IN';
 
               return (
                 <div
@@ -136,6 +163,29 @@ export const MyRegistrationsPage: React.FC = () => {
                           <span className="line-clamp-1">{ev.venue}</span>
                         </div>
                       </div>
+
+                      {/* Attendance status */}
+                      {!isCancelled && (
+                        <div id={`attendance-status-${reg.id || reg._id}`} className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+                          <span className="text-slate-400">Attendance:</span>
+                          {isCheckedIn ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                              CHECKED IN
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                              <Circle className="w-3.5 h-3.5" />
+                              NOT CHECKED IN
+                            </span>
+                          )}
+                          {isCheckedIn && reg.checkedInAt && (
+                            <span className="text-slate-500 dark:text-slate-400">
+                              Checked in at <span className="font-semibold text-slate-700 dark:text-slate-300">{formatTime(reg.checkedInAt)}</span>
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Footer: Registration Date & Action */}
@@ -144,13 +194,25 @@ export const MyRegistrationsPage: React.FC = () => {
                         Registered on: <span className="text-slate-700 dark:text-slate-300 font-medium">{formatDate(reg.registeredAt || reg.createdAt)}</span>
                       </div>
 
-                      <Link
-                        to={`/events/${eventId}`}
-                        className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                      >
-                        <span>View Event Details</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </Link>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        {!isCancelled && (
+                          <button
+                            id={`view-event-pass-btn-${reg.id || reg._id}`}
+                            onClick={() => setPassRegistrationId(reg.id || reg._id!)}
+                            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-sm transition-colors cursor-pointer"
+                          >
+                            <QrCode className="w-3.5 h-3.5" />
+                            <span>View Event Pass</span>
+                          </button>
+                        )}
+                        <Link
+                          to={`/events/${eventId}`}
+                          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                        >
+                          <span>View Event Details</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -165,6 +227,10 @@ export const MyRegistrationsPage: React.FC = () => {
           />
         )}
       </div>
+
+      {passRegistration && (
+        <EventPassModal registration={passRegistration} onClose={() => setPassRegistrationId(null)} />
+      )}
     </div>
   );
 };

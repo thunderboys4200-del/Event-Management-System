@@ -105,7 +105,7 @@ export const StudentDashboard: React.FC = () => {
   });
 
   return (
-    <div className="page-canvas min-h-screen bg-slate-50/80 dark:bg-slate-950 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Student Welcome Banner */}
         <motion.div
@@ -297,3 +297,4 @@ export const StudentDashboard: React.FC = () => {
     </div>
   );
 };
+

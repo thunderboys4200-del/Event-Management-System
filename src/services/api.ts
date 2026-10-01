@@ -1,8 +1,8 @@
 import axios from 'axios';
-import { ApiResponse, EventItem, Registration, StudentStats, StaffStats, User, StudentSignInData, StudentRegistrationData } from '../types';
+import { ApiResponse, EventItem, Registration, StudentStats, StaffStats, User, StudentSignInData, StudentRegistrationData, EventPassData, EventAttendance, AttendanceStats, ScanResponse } from '../types';
 
 const api = axios.create({
-  baseURL: '', // Uses same host proxying to Express backend
+  baseURL: import.meta.env.VITE_API_URL || '',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -117,6 +117,39 @@ export const registrationsApi = {
     return res.data.data || [];
   },
 
+  async getPass(registrationId: string): Promise<EventPassData> {
+    const res = await api.get<ApiResponse<EventPassData>>(`/api/registrations/${registrationId}/pass`);
+    return res.data.data!;
+  },
+
+};
+
+export const attendanceApi = {
+  // Expected scan outcomes (invalid QR, wrong event, duplicate...) come back as 400/404/409 with a
+  // `code`; return them as values so the scanner UI can render each one. 401/403/5xx still throw.
+  async checkIn(token: string, eventId: string): Promise<ScanResponse> {
+    const res = await api.post<ScanResponse>(
+      '/api/attendance/check-in',
+      { token, eventId },
+      { validateStatus: (s) => s < 500 && s !== 401 && s !== 403 }
+    );
+    return res.data;
+  },
+
+  async getEventAttendance(eventId: string): Promise<EventAttendance> {
+    const res = await api.get<ApiResponse<EventAttendance>>(`/api/attendance/events/${eventId}`);
+    return res.data.data!;
+  },
+
+  async getStats(eventId: string): Promise<AttendanceStats> {
+    const res = await api.get<ApiResponse<AttendanceStats>>(`/api/attendance/events/${eventId}/stats`);
+    return res.data.data!;
+  },
+
+  async downloadAttendance(eventId: string): Promise<Blob> {
+    const res = await api.get(`/api/attendance/events/${eventId}/export`, { responseType: 'blob' });
+    return res.data;
+  },
 };
 
 export const statsApi = {

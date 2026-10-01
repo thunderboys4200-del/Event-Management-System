@@ -9,6 +9,7 @@ import authRoutes from './server/routes/auth';
 import eventRoutes from './server/routes/events';
 import registrationRoutes from './server/routes/registrations';
 import statsRoutes from './server/routes/stats';
+import attendanceRoutes from './server/routes/attendance';
 import { authenticateToken, requireStaff, AuthRequest } from './server/middleware/auth';
 
 const escapeSpreadsheetXml = (value: unknown) => String(value ?? '')
@@ -23,7 +24,8 @@ async function startServer() {
   const PORT = config.port || 3000;
 
   // Global Middlewares
-  app.use(cors());
+  const corsOrigin = process.env.CORS_ORIGIN || true;
+  app.use(cors({ origin: corsOrigin, credentials: true }));
   app.use(express.json({ limit: '20mb' }));
   app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
@@ -89,6 +91,7 @@ async function startServer() {
   app.use('/api/events', eventRoutes);
   app.use('/api/registrations', registrationRoutes);
   app.use('/api/stats', statsRoutes);
+  app.use('/api/attendance', attendanceRoutes);
 
   // Direct download endpoint for project zip
   app.get('/api/download-zip', (req, res) => {
@@ -112,9 +115,7 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('app.get('/{*splat}', (req, res) => {
-  res.sendFile(path.join(distPath, 'index.html'));
-});', (req, res) => {
+    app.get('/{*splat}', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }

@@ -16,7 +16,14 @@ export default defineConfig(() => {
       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
       // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
-      watch: process.env.DISABLE_HMR === 'true' ? null : {},
+      // data/ (file-backed database) and uploads/ change at runtime on every registration,
+      // check-in or upload; ignoring them stops Vite from full-reloading the page each time.
+      watch: process.env.DISABLE_HMR === 'true' ? null : { ignored: ['**/data/**', '**/uploads/**'] },
+    },
+    // The QR scanner is only loaded on the staff check-in page; pre-bundle it so the
+    // dev server does not discover it late and reload the page on first visit.
+    optimizeDeps: {
+      include: ['html5-qrcode'],
     },
   };
 });

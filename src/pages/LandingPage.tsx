@@ -19,7 +19,6 @@ import { EventCard } from '../components/EventCard';
 import { EventCardSkeleton } from '../components/LoadingSkeleton';
 import { StudentSignInSection } from '../components/StudentSignInSection';
 import { useAuth } from '../context/AuthContext';
-import { COLLEGE_BRAND_NAME, COLLEGE_CAMPUS_IMAGE_URL, COLLEGE_LOGO_URL } from '../constants/branding';
 
 export const LandingPage: React.FC = () => {
   const [upcomingEvents, setUpcomingEvents] = useState<EventItem[]>([]);
@@ -47,11 +46,11 @@ export const LandingPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="page-canvas flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
       <section className="relative isolate overflow-hidden pt-14 pb-16 md:pt-24 md:pb-24 bg-slate-950">
         <img
-          src={COLLEGE_CAMPUS_IMAGE_URL}
+          src="https://content.jdmagicbox.com/comp/tiruvallur/x2/9999pxx44.xx44.130805114320.u7x2/catalogue/sri-venkateswara-college-of-engineering-and-technology-tirupasur-tiruvallur-engineering-colleges-bju783t.jpg"
           alt="Sri Venkateswara College of Engineering and Technology campus"
           className="absolute inset-0 -z-20 h-full w-full object-cover object-center"
         />
@@ -64,19 +63,17 @@ export const LandingPage: React.FC = () => {
             transition={{ duration: 0.4 }}
             className="text-center max-w-4xl mx-auto space-y-6"
           >
-            {/* Original college identity, retained above the event-platform name. */}
-            <div className="inline-flex items-center gap-3 rounded-2xl border border-white/25 bg-white/10 py-2 pl-2 pr-4 text-left text-xs font-bold tracking-wide text-amber-100 shadow-lg backdrop-blur-md">
-              <span className="grid h-9 w-9 place-items-center overflow-hidden rounded-xl bg-white p-1 shadow-sm">
-                <img src={COLLEGE_LOGO_URL} alt="Sri Venkateswara College of Engineering and Technology logo" className="h-full w-full object-contain" />
-              </span>
-              <span className="flex items-center gap-2"><Sparkles className="w-3.5 h-3.5 text-amber-300" />SRI VENKATESWARA COLLEGE OF ENGINEERING AND TECHNOLOGY</span>
+            {/* Campus Pill */}
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold tracking-wide bg-white/10 text-amber-100 border border-white/25 shadow-lg backdrop-blur-md">
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <span>SRI VENKATESWARA COLLEGE OF ENGINEERING AND TECHNOLOGY AUTONOMOUS</span>
             </div>
 
             {/* Main Headline */}
             <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.08] drop-shadow-sm">
               Your Campus. Your Moments.{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-orange-300 to-amber-100">
-                {COLLEGE_BRAND_NAME}
+                SVCET EVENT HUG
               </span>
             </h1>
 
