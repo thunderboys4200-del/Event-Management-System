@@ -392,16 +392,24 @@ export async function connectDB() {
   if (config.mongoUri) {
     try {
       console.log('Connecting to MongoDB Atlas at', config.mongoUri.replace(/:[^:@]+@/, ':***@'));
-      await mongoose.connect(config.mongoUri);
+      await mongoose.connect(config.mongoUri, {
+        serverSelectionTimeoutMS: 10000,
+        connectTimeoutMS: 10000,
+      });
       isMongoConnected = true;
       console.log('Successfully connected to MongoDB Atlas');
       await seedMongoDatabase();
       await backfillMongoRegistrations();
       return;
     } catch (err) {
-      console.error('CRITICAL: MongoDB Atlas connection failed:', (err as Error).message);
+      const errMsg = (err as Error).message || String(err);
+      console.error('CRITICAL: MongoDB Atlas connection failed:', errMsg);
+      console.error('Troubleshooting checklist:');
+      console.error('1. Atlas Network Access: Ensure 0.0.0.0/0 is added to IP Access List in MongoDB Atlas.');
+      console.error('2. Database Credentials: Verify username & password in Atlas Database Access.');
+      console.error('3. Special Characters: Passwords with @,#,$,% are now auto-encoded.');
       if (config.isProduction) {
-        throw new Error(`Failed to connect to MongoDB Atlas: ${(err as Error).message}`);
+        throw new Error(`Failed to connect to MongoDB Atlas: ${errMsg}`);
       }
       console.warn('Falling back to local persistent file store in non-production environment.');
     }

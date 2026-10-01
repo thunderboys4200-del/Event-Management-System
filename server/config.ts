@@ -18,6 +18,41 @@ function sanitizeEnvString(val?: string): string {
   return cleaned;
 }
 
+function sanitizeMongoUri(val?: string): string {
+  let uri = sanitizeEnvString(val);
+  if (!uri) return '';
+
+  // Ensure passwords with unencoded special characters like '@', '#', '$', '%', etc. are properly URL-encoded
+  const schemeEnd = uri.indexOf('://');
+  if (schemeEnd !== -1) {
+    const lastAtIndex = uri.lastIndexOf('@');
+    if (lastAtIndex > schemeEnd) {
+      const scheme = uri.substring(0, schemeEnd + 3);
+      const creds = uri.substring(schemeEnd + 3, lastAtIndex);
+      const hostAndRest = uri.substring(lastAtIndex + 1);
+      const colonIdx = creds.indexOf(':');
+      if (colonIdx !== -1) {
+        const username = creds.substring(0, colonIdx);
+        const rawPassword = creds.substring(colonIdx + 1);
+        try {
+          let decodedPass = rawPassword;
+          try {
+            decodedPass = decodeURIComponent(rawPassword);
+          } catch {
+            // Raw string was not encoded
+          }
+          const safePassword = encodeURIComponent(decodedPass);
+          return `${scheme}${username}:${safePassword}@${hostAndRest}`;
+        } catch {
+          return uri;
+        }
+      }
+    }
+  }
+
+  return uri;
+}
+
 function getOrGenerateJwtSecret(): string {
   // 1. If explicitly set in environment variables, use it
   const envSecret = sanitizeEnvString(process.env.JWT_SECRET);
@@ -54,7 +89,7 @@ function getOrGenerateJwtSecret(): string {
 export const config = {
   port: parseInt(process.env.PORT || '3000', 10),
   jwtSecret: getOrGenerateJwtSecret(),
-  mongoUri: sanitizeEnvString(process.env.MONGODB_URI),
+  mongoUri: sanitizeMongoUri(process.env.MONGODB_URI),
   isProduction: process.env.NODE_ENV === 'production',
   uploadsDir: path.join(process.cwd(), 'uploads'),
   dataDir: path.join(process.cwd(), 'data'),
